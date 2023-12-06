@@ -118,8 +118,8 @@ def runner(wandb_config, params_default):
             else:
                 bad_cnt += 1
 
-            if bad_cnt==params['patience']:
-                break
+            # if bad_cnt==params['patience']:
+            #     break
         
         print('Final metric is [%s]'%(best_test_metric))
         writer.close()

@@ -3,7 +3,7 @@ add_self_loops:
 agent_package:
 - 100
 chunk_size:
-- 64
+- 256
 diff_or:
 - true
 dropout_rate:
