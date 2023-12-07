@@ -22,7 +22,7 @@ class ONGNNConv(MessagePassing):
             if self.params['add_self_loops']==True:
                 edge_index, _ = add_self_loops(edge_index, num_nodes=x.size(0))
 
-        m = self.propagate(edge_index, x=x, tm_signal=None)
+        m = self.propagate(edge_index, x=x, tm_signal=None, m=None)
 
         if self.params['tm']==True:
             if self.params['simple_gating']==True:
@@ -33,7 +33,8 @@ class ONGNNConv(MessagePassing):
                 if self.params['diff_or']==True:
                     tm_signal_raw = last_tm_signal+(1-last_tm_signal)*tm_signal_raw
             tm_signal = tm_signal_raw.repeat_interleave(repeats=int(self.params['hidden_channel']/self.params['chunk_size']), dim=1)
-            m = self.propagate(edge_index, x=torch.cat(m,tm_signal))
+            m = self.propagate(edge_index, x=x*tm_signal, tm_signal=tm_signal, m=m)
+            
             out = x*tm_signal + m*(1-tm_signal)
         else:
             out = m
@@ -43,12 +44,10 @@ class ONGNNConv(MessagePassing):
 
         return out, tm_signal_raw
     
-    def message(self, x_i, x_j, tm_signal):
-        if tm_signal is None:
-            self.xi = x_i
-            # print(x_i.shape, x_j.shape)
+    def message(self, x_i, x_j, tm_signal_i, m_i):
+        if tm_signal_i is None:
             return x_j
         else:
             # print(x_i.shape, x_j.shape, tm_signal.shape)
-            out = self.pr_net(torch.cat((self.xi, x_j), dim=1))
+            out = self.pr_net(torch.cat((x_i, x_j*tm_signal_i, m_i), dim=1))
             return out

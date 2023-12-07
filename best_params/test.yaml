@@ -1,0 +1,80 @@
+add_self_loops:
+- false
+agent_package:
+- 100
+chunk_size:
+- 256
+diff_or:
+- true
+dropout_rate:
+- 0.5
+- 0.4
+- 0.3
+- 0.2
+- 0.1
+dropout_rate2:
+- None
+- 0
+- 0.01
+- 0.05
+epochs:
+- 2000
+global_gating:
+- false
+hidden_channel:
+- 256
+index_split:
+- 0
+learning_rate:
+- 1.0e-01
+- 5.0e-01
+- 1.0e-02
+- 5.0e-02
+- 1.0e-03
+- 5.0e-03
+- 1.0e-04
+- 5.0e-04
+log_freq:
+- 200
+model:
+- ONGNN
+- GAT
+num_layers:
+- 32
+- 16
+- 8
+- 4
+- 2
+num_layers_input:
+- 2
+patience:
+- 200
+save_model:
+- false
+seed:
+- 42
+simple_gating:
+- false
+task:
+- Cora_full
+- Actor
+- Chameleon
+- PubMed_geom
+- CiteSeer_geom
+- Cora_geom
+- Squirrel
+- Texas
+- Wisconsin
+tm:
+- true
+weight_decay:
+- 5.0e-02
+- 5.0e-04
+- 5.0e-06
+- 5.0e-08
+weight_decay2:
+- None
+- 5.0e-02
+- 5.0e-04
+- 5.0e-06
+- 5.0e-08

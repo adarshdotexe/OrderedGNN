@@ -31,31 +31,15 @@ class GONN(Module):
         self.norm_input.append(LayerNorm(params['hidden_channel']))
 
         if params['global_gating']==True:
-            tm_net = nn.Sequential(
-            nn.Linear(2*params['hidden_channel'], params['chunk_size']),
-            nn.GELU(),
-            nn.Linear(params['chunk_size'], params['chunk_size']),
-        )
-            pr_net = (nn.Sequential(
-            nn.Linear(3*params['hidden_channel'], params['hidden_channel']),
-            nn.GELU(),
-            nn.Linear(params['chunk_size'], params['hidden_channel']),
-        ))
+            tm_net = nn.Linear(2*params['hidden_channel'], params['chunk_size'])
+            pr_net = nn.Linear(3*params['hidden_channel'], params['hidden_channel'])
 
         for i in range(params['num_layers']):
             self.tm_norm.append(LayerNorm(params['hidden_channel']))
             
             if params['global_gating']==False:
-                self.tm_net.append(nn.Sequential(
-            nn.Linear(2*params['hidden_channel'], params['chunk_size']),
-            nn.GELU(),
-            nn.Linear(params['chunk_size'], params['chunk_size']),
-        ))
-                self.pr_net.append(nn.Sequential(
-            nn.Linear(3*params['hidden_channel'], params['hidden_channel']),
-            nn.GELU(),
-            nn.Linear(params['hidden_channel'], params['hidden_channel']),
-        ))
+                self.tm_net.append(nn.Linear(2*params['hidden_channel'], params['chunk_size']))
+                self.pr_net.append(nn.Linear(3*params['hidden_channel'], params['hidden_channel']))
             else:
                 self.tm_net.append(tm_net)
                 self.pr_net.append(pr_net)
