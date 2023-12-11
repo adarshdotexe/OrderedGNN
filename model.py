@@ -44,8 +44,8 @@ class GONN(Module):
                 self.tm_net.append(tm_net)
                 self.pr_net.append(pr_net)
         
-            if params['model']=="ONGNN":
-                self.convs.append(ONGNNConv(tm_net=self.tm_net[i],pr_net=self.pr_net[i] , tm_norm=self.tm_norm[i], params=params))
+            if params['model']=="OGNN":
+                self.convs.append(OGNNConv(tm_net=self.tm_net[i],pr_net=self.pr_net[i] , tm_norm=self.tm_norm[i], params=params))
 
         self.params_conv = list(set(list(self.convs.parameters())+list(self.tm_net.parameters())+list(self.pr_net.parameters())))
         self.params_others = list(self.linear_trans_in.parameters())+list(self.linear_trans_out.parameters())

@@ -4,9 +4,9 @@ from mp_deterministic import MessagePassing
 from torch_geometric.utils import remove_self_loops, add_self_loops
 from torch_sparse import SparseTensor, fill_diag
 
-class ONGNNConv(MessagePassing):
+class OGNNConv(MessagePassing):
     def __init__(self, tm_net, pr_net, tm_norm, params):
-        super(ONGNNConv, self).__init__('mean')
+        super(OGNNConv, self).__init__('sum')
         self.params = params
         self.tm_net = tm_net
         self.pr_net = pr_net
