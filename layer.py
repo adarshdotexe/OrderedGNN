@@ -32,13 +32,13 @@ class OGNNConv(MessagePassing):
                 tm_signal_raw = torch.cumsum(tm_signal_raw, dim=-1)
                 if self.params['diff_or']==True:
                     tm_signal_raw = last_tm_signal+(1-last_tm_signal)*tm_signal_raw
-            tm_signal = tm_signal_raw.repeat_interleave(repeats=int(self.params['hidden_channel']/self.params['chunk_size']), dim=1)
-            if self.params['sm']==True:
-                m = self.propagate(edge_index, x=x, m=m)
-                tm_signal_raw = F.softmax(self.tm_net(torch.cat((x, m), dim=1)), dim=-1)
-                tm_signal_raw = torch.cumsum(tm_signal_raw, dim=-1)
-                if self.params['diff_or']==True:
-                    tm_signal_raw = last_tm_signal+(1-last_tm_signal)*tm_signal_raw
+                tm_signal = tm_signal_raw.repeat_interleave(repeats=int(self.params['hidden_channel']/self.params['chunk_size']), dim=1)
+                if self.params['sm']==True:
+                    m = self.propagate(edge_index, x=x*tm_signal, m=m*(1-tm_signal))
+                    tm_signal_raw = F.softmax(self.tm_net(torch.cat((x, m), dim=1)), dim=-1)
+                    tm_signal_raw = torch.cumsum(tm_signal_raw, dim=-1)
+                    if self.params['diff_or']==True:
+                        tm_signal_raw = last_tm_signal+(1-last_tm_signal)*tm_signal_raw
             tm_signal = tm_signal_raw.repeat_interleave(repeats=int(self.params['hidden_channel']/self.params['chunk_size']), dim=1)
             out = x*tm_signal + m*(1-tm_signal)
         else:
