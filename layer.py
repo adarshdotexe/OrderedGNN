@@ -39,6 +39,7 @@ class OGNNConv(MessagePassing):
             if self.params['sm']==True:
                 m = self.propagate(edge_index, x=x, m=m)
             out = m
+            tm_signal_raw = last_tm_signal
             
 
         out = self.tm_norm(out)
