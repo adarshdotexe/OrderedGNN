@@ -7,9 +7,9 @@ chunk_size:
 diff_or:
 - false
 dropout_rate:
-- 0.4
+- 0.5
 dropout_rate2:
-- 0.3
+- 0.5
 epochs:
 - 2000
 global_gating:
@@ -21,7 +21,7 @@ index_split:
 learning_rate:
 - 0.0001
 log_freq:
-- 200
+- 50
 model:
 - GAT
 - OGNN
