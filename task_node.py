@@ -92,10 +92,10 @@ def get_trainer(params):
     device = torch.device('cuda:%s'%(params['gpu_index']) if torch.cuda.is_available() else 'cpu')
     print("GPU device: [%s]"%(device))
     
-    if params['model'] == 'ONGNN':
+    if params['model'] == 'OGNN':
         from model import GONN as Encoder
         model = Encoder(params).to(device)
-    elif params['model']=='GAT':
+    elif params['model'] == 'GAT':
         from baseline import GAT as Encoder
         model = Encoder(params).to(device)
 
