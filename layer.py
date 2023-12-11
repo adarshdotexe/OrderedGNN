@@ -45,7 +45,7 @@ class OGNNConv(MessagePassing):
         
         return out, tm_signal_raw
     
-    def message(self, x_i, x_j, tm_signal_i, m_i):
+    def message(self, x_i, x_j, m_i):
         if m_i is None:
             return x_j
         else:
