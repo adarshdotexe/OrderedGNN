@@ -7,9 +7,9 @@ chunk_size:
 diff_or:
 - false
 dropout_rate:
-- 0.5
+- 0.4
 dropout_rate2:
-- None
+- 0.3
 epochs:
 - 2000
 global_gating:
@@ -19,7 +19,7 @@ hidden_channel:
 index_split:
 - 0
 learning_rate:
-- 0.001
+- 0.0001
 log_freq:
 - 200
 model:
@@ -41,8 +41,7 @@ task:
 - CiteSeer_full
 tm:
 - false
-pr:
-- true
+sm:
 - false
 weight_decay:
 - 5.0e-06
