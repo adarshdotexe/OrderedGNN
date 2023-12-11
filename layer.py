@@ -37,8 +37,9 @@ class OGNNConv(MessagePassing):
             out = x*tm_signal + m*(1-tm_signal)
         else:
             tm_signal_raw = last_tm_signal
+            tm_signal = tm_signal_raw.repeat_interleave(repeats=int(self.params['hidden_channel']/self.params['chunk_size']), dim=1)
             if self.params['sm']==True:
-                m = self.propagate(edge_index, x=x*tm_signal_raw, m=m)
+                m = self.propagate(edge_index, x=x*tm_signal, m=m)
             out = m
             
 
