@@ -57,6 +57,8 @@ class GONN(Module):
             x = F.dropout(x, p=self.params['dropout_rate'], training=self.training)
             x = F.gelu(self.linear_trans_in[i](x))
             x = self.norm_input[i](x)
+        y = x
+        x+=y
 
         tm_signal = x.new_zeros(self.params['chunk_size'])
 
@@ -66,6 +68,7 @@ class GONN(Module):
             else:
                 x = F.dropout(x, p=self.params['dropout_rate'], training=self.training)
             x, tm_signal = self.convs[j](x, edge_index, last_tm_signal=tm_signal)
+            x+=y
             check_signal.append(dict(zip(['tm_signal'], [tm_signal])))
 
         x = F.dropout(x, p=self.params['dropout_rate'], training=self.training)
