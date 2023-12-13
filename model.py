@@ -21,7 +21,6 @@ class GONN(Module):
         self.in_net = ModuleList()
         self.fr_net = ModuleList()
         self.op_net = ModuleList()
-        self.cell_net = ModuleList()
 
         self.linear_trans_in.append(Linear(params['in_channel'], params['hidden_channel']))
 
@@ -52,16 +51,10 @@ class GONN(Module):
                     nn.LeakyReLU(),
                     nn.Linear(params['chunk_size'], params['chunk_size']),
                 ))
-                self.cell_net.append(nn.Sequential(
-                    nn.Linear(2*params['hidden_channel'], params['chunk_size']),
-                    nn.LeakyReLU(),
-                    nn.Linear(params['chunk_size'], params['chunk_size']),
-                ))
             else:
                 self.in_net.append(nn.Linear(2*params['hidden_channel'], params['chunk_size']))
                 self.fr_net.append(nn.Linear(2*params['hidden_channel'], params['chunk_size']))
-                self.op_net.append(nn.Linear(2*params['hidden_channel'], params['chunk_size']))
-                self.cell_net.append(nn.Linear(2*params['hidden_channel'], params['chunk_size']))
+                self.op_net.append(nn.Linear(2*params['hidden_channel'], params['hidden_channel']))
         
             if params['model']=="OGNN":
                 self.convs.append(OGNNConv(in_net=self.in_net[i], fr_net=self.fr_net[i], op_net=self.op_net[i], cell_net=self.cell_net[i], tm_norm=self.tm_norm[i], params=params))
@@ -79,16 +72,18 @@ class GONN(Module):
         y = x
         x+=y
 
-        cell_state = x.new_zeros(self.params['chunk_size'])
+        in_signal_raw = x.new_zeros(self.params['chunk_size'])
+        fr_signal_raw = x.new_zeros(self.params['chunk_size'])
 
         for j in range(len(self.convs)):
             if self.params['dropout_rate2']!='None':
                 x = F.dropout(x, p=self.params['dropout_rate2'], training=self.training)
             else:
                 x = F.dropout(x, p=self.params['dropout_rate'], training=self.training)
-            x, cell_state = self.convs[j](x, edge_index, last_cell_state=cell_state, y=y)
+            x, in_signal_raw, fr_signal_raw  = self.convs[j](x, edge_index, last_in_signal=in_signal_raw, last_fr_signal=fr_signal_raw)
             x+=y
-            check_signal.append(dict(zip(['tm_signal'], [cell_state])))
+            check_signal.append(dict(zip(['in_signal'], [in_signal_raw])))
+            check_signal.append(dict(zip(['fr_signal'], [fr_signal_raw])))
 
         x = F.dropout(x, p=self.params['dropout_rate'], training=self.training)
         x = self.linear_trans_out(x)

@@ -14,7 +14,7 @@ class OGNNConv(MessagePassing):
         self.cell_net = cell_net
         self.tm_norm = tm_norm
 
-    def forward(self, x, edge_index, last_cell_state, y):
+    def forward(self, x, edge_index, last_in_signal, last_fr_signal):
         if isinstance(edge_index, SparseTensor):
             edge_index = fill_diag(edge_index, fill_value=0)
             if self.params['add_self_loops']==True:
@@ -26,22 +26,25 @@ class OGNNConv(MessagePassing):
 
         m = self.propagate(edge_index, x=x, m=None)
         # tm_signal_raw = F.sigmoid(self.tm_net(torch.cat((x, m), dim=1)))
-        in_signal_raw = F.sigmoid(self.in_net(torch.cat((x, m), dim=1)))
-        fr_signal_raw = F.sigmoid(self.fr_net(torch.cat((x, m), dim=1)))
-        op_signal_raw = F.sigmoid(self.op_net(torch.cat((x, m), dim=1)))
-        cell_signal_raw = F.tanh(self.cell_net(torch.cat((x, m), dim=1)))
+
+        # Cummax
+        in_signal_raw = F.softmax(self.in_net(torch.cat((x, m), dim=1)), dim=-1)
+        in_signal_raw = F.cumsum(in_signal_raw, dim=-1)
+        fr_signal_raw = F.softmax(self.fr_net(torch.cat((x, m), dim=1)), dim=-1)
+        fr_signal_raw = F.cumsum(fr_signal_raw, dim=-1)
+
+        # Softor
+        in_signal_raw = last_in_signal + (1-last_in_signal)*in_signal_raw
+        fr_signal_raw = in_signal_raw + (1-in_signal_raw)*fr_signal_raw
+
 
         in_signal = in_signal_raw.repeat_interleave(repeats=int(self.params['hidden_channel']/self.params['chunk_size']), dim=1)
         fr_signal = fr_signal_raw.repeat_interleave(repeats=int(self.params['hidden_channel']/self.params['chunk_size']), dim=1)
-        op_signal = op_signal_raw.repeat_interleave(repeats=int(self.params['hidden_channel']/self.params['chunk_size']), dim=1)
-        cell_signal = cell_signal_raw.repeat_interleave(repeats=int(self.params['hidden_channel']/self.params['chunk_size']), dim=1)
-        out = fr_signal*last_cell_state+in_signal*cell_signal
-        out = F.tanh(out)
-        out = op_signal*out
-        out += y
+
+        out = self.op_net(in_signal*x + fr_signal*m)
         out = self.tm_norm(out)
         
-        return out, cell_signal
+        return out, in_signal_raw, fr_signal_raw
     
     def message(self, x_j):
         return x_j
