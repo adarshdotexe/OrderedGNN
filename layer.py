@@ -5,16 +5,15 @@ from torch_geometric.utils import remove_self_loops, add_self_loops
 from torch_sparse import SparseTensor, fill_diag
 
 class OGNNConv(MessagePassing):
-    def __init__(self, in_net, fr_net, op_net, cell_net, tm_norm, params):
+    def __init__(self, in_net, fr_net, op_net, tm_norm, params):
         super(OGNNConv, self).__init__('mean')
         self.params = params
         self.in_net = in_net
         self.fr_net = fr_net
         self.op_net = op_net
-        self.cell_net = cell_net
         self.tm_norm = tm_norm
 
-    def forward(self, x, edge_index, last_in_signal, last_fr_signal):
+    def forward(self, x, edge_index, last_fr_signal):
         if isinstance(edge_index, SparseTensor):
             edge_index = fill_diag(edge_index, fill_value=0)
             if self.params['add_self_loops']==True:
@@ -34,7 +33,7 @@ class OGNNConv(MessagePassing):
         fr_signal_raw = F.cumsum(fr_signal_raw, dim=-1)
 
         # Softor
-        in_signal_raw = last_in_signal + (1-last_in_signal)*in_signal_raw
+        in_signal_raw = last_fr_signal + (1-last_fr_signal)*in_signal_raw
         fr_signal_raw = in_signal_raw + (1-in_signal_raw)*fr_signal_raw
 
 

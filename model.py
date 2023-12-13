@@ -57,9 +57,9 @@ class GONN(Module):
                 self.op_net.append(nn.Linear(2*params['hidden_channel'], params['hidden_channel']))
         
             if params['model']=="OGNN":
-                self.convs.append(OGNNConv(in_net=self.in_net[i], fr_net=self.fr_net[i], op_net=self.op_net[i], cell_net=self.cell_net[i], tm_norm=self.tm_norm[i], params=params))
+                self.convs.append(OGNNConv(in_net=self.in_net[i], fr_net=self.fr_net[i], op_net=self.op_net[i], tm_norm=self.tm_norm[i], params=params))
 
-        self.params_conv = list(set(list(self.convs.parameters())+list(self.in_net.parameters())+list(self.fr_net.parameters())+list(self.op_net.parameters())+list(self.cell_net.parameters())))
+        self.params_conv = list(set(list(self.convs.parameters())+list(self.in_net.parameters())+list(self.fr_net.parameters())+list(self.op_net.parameters())+list(self.tm_norm.parameters())))
         self.params_others = list(self.linear_trans_in.parameters())+list(self.linear_trans_out.parameters())
 
     def forward(self, x, edge_index):
@@ -72,7 +72,6 @@ class GONN(Module):
         y = x
         x+=y
 
-        in_signal_raw = x.new_zeros(self.params['chunk_size'])
         fr_signal_raw = x.new_zeros(self.params['chunk_size'])
 
         for j in range(len(self.convs)):
@@ -80,9 +79,8 @@ class GONN(Module):
                 x = F.dropout(x, p=self.params['dropout_rate2'], training=self.training)
             else:
                 x = F.dropout(x, p=self.params['dropout_rate'], training=self.training)
-            x, in_signal_raw, fr_signal_raw  = self.convs[j](x, edge_index, last_in_signal=in_signal_raw, last_fr_signal=fr_signal_raw)
+            x, fr_signal_raw  = self.convs[j](x, edge_index, last_fr_signal=fr_signal_raw)
             x+=y
-            check_signal.append(dict(zip(['in_signal'], [in_signal_raw])))
             check_signal.append(dict(zip(['fr_signal'], [fr_signal_raw])))
 
         x = F.dropout(x, p=self.params['dropout_rate'], training=self.training)
