@@ -14,7 +14,7 @@ class OGNNConv(MessagePassing):
         self.cell_net = cell_net
         self.tm_norm = tm_norm
 
-    def forward(self, x, edge_index, last_cell_signal):
+    def forward(self, x, edge_index, last_cell_state, y):
         if isinstance(edge_index, SparseTensor):
             edge_index = fill_diag(edge_index, fill_value=0)
             if self.params['add_self_loops']==True:
@@ -35,7 +35,7 @@ class OGNNConv(MessagePassing):
         fr_signal = fr_signal_raw.repeat_interleave(repeats=int(self.params['hidden_channel']/self.params['chunk_size']), dim=1)
         op_signal = op_signal_raw.repeat_interleave(repeats=int(self.params['hidden_channel']/self.params['chunk_size']), dim=1)
         cell_signal = cell_signal_raw.repeat_interleave(repeats=int(self.params['hidden_channel']/self.params['chunk_size']), dim=1)
-        out = fr_signal*last_cell_signal+in_signal*cell_signal
+        out = fr_signal*last_cell_state+in_signal*cell_signal
         out = F.tanh(out)
         out = op_signal*out
         
