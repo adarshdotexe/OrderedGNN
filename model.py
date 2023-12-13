@@ -47,14 +47,14 @@ class GONN(Module):
                     nn.Linear(params['chunk_size'], params['chunk_size']),
                 ))
                 self.op_net.append(nn.Sequential(
-                    nn.Linear(2*params['hidden_channel'], params['hidden_channel']),
+                    nn.Linear(params['hidden_channel'], params['hidden_channel']),
                     nn.LeakyReLU(),
                     nn.Linear(params['hidden_channel'], params['hidden_channel']),
                 ))
             else:
                 self.in_net.append(nn.Linear(2*params['hidden_channel'], params['chunk_size']))
                 self.fr_net.append(nn.Linear(2*params['hidden_channel'], params['chunk_size']))
-                self.op_net.append(nn.Linear(2*params['hidden_channel'], params['hidden_channel']))
+                self.op_net.append(nn.Linear(params['hidden_channel'], params['hidden_channel']))
         
             if params['model']=="OGNN":
                 self.convs.append(OGNNConv(in_net=self.in_net[i], fr_net=self.fr_net[i], op_net=self.op_net[i], tm_norm=self.tm_norm[i], params=params))
