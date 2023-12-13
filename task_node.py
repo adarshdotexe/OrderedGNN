@@ -9,6 +9,7 @@ from ogb.nodeproppred import PygNodePropPredDataset, Evaluator
 from datasets.datasets_linkx.dataset import load_nc_dataset
 from torch_geometric.data import Data
 from torch_sparse import SparseTensor
+import psgd
 
 def get_trainer(params):
     dataset_name = params['task']
@@ -98,8 +99,20 @@ def get_trainer(params):
     elif params['model'] == 'GAT':
         from baseline import GAT as Encoder
         model = Encoder(params).to(device)
-
+    
+    preconditioner = None
     criterion = torch.nn.NLLLoss()
+    if params['preconditioner'] == True:
+        preconditioner = psgd.KFAC(
+                model, 
+                eps, 
+                sua=False, 
+                pi=False, 
+                update_freq=update_freq,
+                alpha=alpha if alpha is not None else 1.,
+                constraint_norm=False
+            )
+    lam = (float(epoch)/float(epochs))**gamma if gamma is not None else 0.
     
     if params['weight_decay2']=="None":
         optimizer = torch.optim.Adam(model.parameters(), lr=params['learning_rate'], weight_decay=params['weight_decay'])
@@ -109,7 +122,7 @@ def get_trainer(params):
                                 lr=params['learning_rate'])
 
     if dataset_name in ['ogbn-arxiv']:
-        trainer = dict(zip(['data', 'device', 'model', 'criterion', 'optimizer', 'split_idx', 'evaluator', 'params'], [data, device, model, criterion, optimizer, split_idx, evaluator, params]))
+        trainer = dict(zip(['data', 'device', 'model', 'criterion', 'optimizer', 'split_idx', 'evaluator', 'params', 'preconditioner'], [data, device, model, criterion, optimizer, split_idx, evaluator, params, preconditioner]))
     else:
         trainer = dict(zip(['data', 'device', 'model', 'criterion', 'optimizer', 'params'], [data, device, model, criterion, optimizer, params]))
 
@@ -137,6 +150,7 @@ def get_metric(trainer, stage):
         vec = encode_values['x']
         pred = F.log_softmax(vec, dim=-1)
         loss = criterion(pred[mask], data.y.squeeze(1)[mask])
+        loss += lam * criterion(pred[~mask], data.y.squeeze(1)[~mask])
     else:
         for _, mask_tensor in data(stage+'_mask'):
             mask = mask_tensor
@@ -144,9 +158,12 @@ def get_metric(trainer, stage):
         vec = encode_values['x']
         pred = F.log_softmax(vec, dim=-1)
         loss = criterion(pred[mask], data.y[mask])
+        loss += lam * criterion(pred[~mask], data.y[~mask])
     
     if stage=='train':
         loss.backward()
+        if preconditioner:
+            preconditioner.step(lam=0)
         optimizer.step()
         optimizer.zero_grad()
 
