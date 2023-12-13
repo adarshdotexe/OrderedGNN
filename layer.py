@@ -43,7 +43,7 @@ class OGNNConv(MessagePassing):
         out = self.op_net(in_signal*x + fr_signal*m)
         out = self.tm_norm(out)
         
-        return out, in_signal_raw, fr_signal_raw
+        return out, fr_signal_raw
     
     def message(self, x_j):
         return x_j
