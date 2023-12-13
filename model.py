@@ -31,14 +31,22 @@ class GONN(Module):
         self.norm_input.append(LayerNorm(params['hidden_channel']))
 
         if params['global_gating']==True:
-            tm_net = nn.Linear(2*params['hidden_channel'], params['chunk_size'])
+            tm_net = nn.Linear(nn.Sequential(
+                    nn.Linear(2*params['hidden_channel'], params['chunk_size']),
+                    nn.LeakyReLU(),
+                    nn.Linear(params['chunk_size'], params['chunk_size']),
+                ))
             pr_net = nn.Linear(3*params['hidden_channel'], params['hidden_channel'])
 
         for i in range(params['num_layers']):
             self.tm_norm.append(LayerNorm(params['hidden_channel']))
             
             if params['global_gating']==False:
-                self.tm_net.append(nn.Linear(2*params['hidden_channel'], params['chunk_size']))
+                self.tm_net.append(nn.Sequential(
+                    nn.Linear(2*params['hidden_channel'], params['chunk_size']),
+                    nn.LeakyReLU(),
+                    nn.Linear(params['chunk_size'], params['chunk_size']),
+                ))
                 self.pr_net.append(nn.Linear(3*params['hidden_channel'], params['hidden_channel']))
             else:
                 self.tm_net.append(tm_net)
@@ -68,7 +76,7 @@ class GONN(Module):
             else:
                 x = F.dropout(x, p=self.params['dropout_rate'], training=self.training)
             x, tm_signal = self.convs[j](x, edge_index, last_tm_signal=tm_signal)
-            x+=y*(1-tm_signal.repeat_interleave(repeats=int(self.params['hidden_channel']/self.params['chunk_size']), dim=-1))
+            x+=y*(1-tm_signal.repeat_interleave(repeats=int(self.params['hidden_channel']/self.params['chunk_size']), dim=0))
             check_signal.append(dict(zip(['tm_signal'], [tm_signal])))
 
         x = F.dropout(x, p=self.params['dropout_rate'], training=self.training)
