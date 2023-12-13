@@ -38,6 +38,8 @@ class OGNNConv(MessagePassing):
         out = fr_signal*last_cell_state+in_signal*cell_signal
         out = F.tanh(out)
         out = op_signal*out
+        out += y
+        out = self.tm_norm(out)
         
         return out, cell_signal
     

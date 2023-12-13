@@ -3,11 +3,11 @@ add_self_loops:
 agent_package:
 - 100
 chunk_size:
-- 64
+- 256
 diff_or:
 - true
 dropout_rate:
-- 0.3
+- 0.5
 dropout_rate2:
 - 0
 epochs:
@@ -19,28 +19,31 @@ hidden_channel:
 index_split:
 - 0
 learning_rate:
-- 0.005
+- 0.001
 log_freq:
-- 200
+- 50
 model:
-- ONGNN
+- OGNN
+- GAT
 num_layers:
 - 32
 num_layers_input:
 - 2
 patience:
-- 200
+- 2000
 save_model:
 - false
 seed:
 - 42
 simple_gating:
+- true
 - false
 task:
-- PubMed_full
+- Cora_full
 tm:
 - true
 weight_decay:
-- 0.5
+- 0.05
+- 0.5e-8
 weight_decay2:
-- 0.0005
+- None
