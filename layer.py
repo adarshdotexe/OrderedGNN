@@ -28,9 +28,9 @@ class OGNNConv(MessagePassing):
 
         # Cummax
         in_signal_raw = F.softmax(self.in_net(torch.cat((x, m), dim=1)), dim=-1)
-        in_signal_raw = F.cumsum(in_signal_raw, dim=-1)
+        in_signal_raw = torch.cumsum(in_signal_raw, dim=-1)
         fr_signal_raw = F.softmax(self.fr_net(torch.cat((x, m), dim=1)), dim=-1)
-        fr_signal_raw = F.cumsum(fr_signal_raw, dim=-1)
+        fr_signal_raw = torch.cumsum(fr_signal_raw, dim=-1)
 
         # Softor
         in_signal_raw = last_fr_signal + (1-last_fr_signal)*in_signal_raw
