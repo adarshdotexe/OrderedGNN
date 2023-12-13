@@ -18,8 +18,10 @@ class GONN(Module):
         self.convs = ModuleList()
 
         self.tm_norm = ModuleList()
-        self.tm_net = ModuleList()
-        self.pr_net = ModuleList()
+        self.in_net = ModuleList()
+        self.fr_net = ModuleList()
+        self.op_net = ModuleList()
+        self.cell_net = ModuleList()
 
         self.linear_trans_in.append(Linear(params['in_channel'], params['hidden_channel']))
 
@@ -30,30 +32,39 @@ class GONN(Module):
             self.linear_trans_in.append(Linear(params['hidden_channel'], params['hidden_channel']))
         self.norm_input.append(LayerNorm(params['hidden_channel']))
 
-        if params['global_gating']==True:
-            tm_net = nn.Linear(nn.Sequential(
-                    nn.Linear(2*params['hidden_channel'], params['chunk_size']),
-                    nn.LeakyReLU(),
-                    nn.Linear(params['chunk_size'], params['chunk_size']),
-                ))
-            pr_net = nn.Linear(3*params['hidden_channel'], params['hidden_channel'])
-
         for i in range(params['num_layers']):
+
             self.tm_norm.append(LayerNorm(params['hidden_channel']))
-            
-            if params['global_gating']==False:
-                self.tm_net.append(nn.Sequential(
+
+            if params['simple_gating']==False:
+                self.in_net.append(nn.Sequential(
                     nn.Linear(2*params['hidden_channel'], params['chunk_size']),
                     nn.LeakyReLU(),
                     nn.Linear(params['chunk_size'], params['chunk_size']),
                 ))
-                self.pr_net.append(nn.Linear(3*params['hidden_channel'], params['hidden_channel']))
+                self.fr_net.append(nn.Sequential(
+                    nn.Linear(2*params['hidden_channel'], params['chunk_size']),
+                    nn.LeakyReLU(),
+                    nn.Linear(params['chunk_size'], params['chunk_size']),
+                ))
+                self.op_net.append(nn.Sequential(
+                    nn.Linear(2*params['hidden_channel'], params['chunk_size']),
+                    nn.LeakyReLU(),
+                    nn.Linear(params['chunk_size'], params['chunk_size']),
+                ))
+                self.cell_net.append(nn.Sequential(
+                    nn.Linear(2*params['hidden_channel'], params['chunk_size']),
+                    nn.LeakyReLU(),
+                    nn.Linear(params['chunk_size'], params['chunk_size']),
+                ))
             else:
-                self.tm_net.append(tm_net)
-                self.pr_net.append(pr_net)
+                self.in_net.append(nn.Linear(2*params['hidden_channel'], params['chunk_size']))
+                self.fr_net.append(nn.Linear(2*params['hidden_channel'], params['chunk_size']))
+                self.op_net.append(nn.Linear(2*params['hidden_channel'], params['chunk_size']))
+                self.cell_net.append(nn.Linear(2*params['hidden_channel'], params['chunk_size']))
         
             if params['model']=="OGNN":
-                self.convs.append(OGNNConv(tm_net=self.tm_net[i],pr_net=self.pr_net[i] , tm_norm=self.tm_norm[i], params=params))
+                self.convs.append(OGNNConv(in_net=self.in_net[i], fr_net=self.fr_net[i], op_net=self.op_net[i], cell_net=self.cell_net[i], tm_norm=self.tm_norm[i], params=params))
 
         self.params_conv = list(set(list(self.convs.parameters())+list(self.tm_net.parameters())+list(self.pr_net.parameters())))
         self.params_others = list(self.linear_trans_in.parameters())+list(self.linear_trans_out.parameters())
@@ -75,8 +86,7 @@ class GONN(Module):
                 x = F.dropout(x, p=self.params['dropout_rate2'], training=self.training)
             else:
                 x = F.dropout(x, p=self.params['dropout_rate'], training=self.training)
-            x, tm_signal = self.convs[j](x, edge_index, last_tm_signal=tm_signal)
-            x+=F.dropout(y, p=self.params['dropout_rate'], training=self.training)*(1-tm_signal.repeat_interleave(repeats=int(self.params['hidden_channel']/self.params['chunk_size']), dim=0))
+            x, cell_state = self.convs[j](x, edge_index, last_cell_state=cell_state, y=y)
             check_signal.append(dict(zip(['tm_signal'], [tm_signal])))
 
         x = F.dropout(x, p=self.params['dropout_rate'], training=self.training)
