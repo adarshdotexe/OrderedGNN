@@ -13,7 +13,7 @@ class OGNNConv(MessagePassing):
         self.op_net = op_net
         self.tm_norm = tm_norm
 
-    def forward(self, x, edge_index, last_fr_signal):
+    def forward(self, x, edge_index, last_fr_signal, y):
         if isinstance(edge_index, SparseTensor):
             edge_index = fill_diag(edge_index, fill_value=0)
             if self.params['add_self_loops']==True:
@@ -40,7 +40,7 @@ class OGNNConv(MessagePassing):
         in_signal = in_signal_raw.repeat_interleave(repeats=int(self.params['hidden_channel']/self.params['chunk_size']), dim=1)
         fr_signal = fr_signal_raw.repeat_interleave(repeats=int(self.params['hidden_channel']/self.params['chunk_size']), dim=1)
 
-        out = self.op_net(in_signal*x + fr_signal*m)
+        out = self.op_net(torch.cat((in_signal*x + fr_signal*m, y), dim=1))
         out = self.tm_norm(out)
         
         return out, fr_signal_raw
