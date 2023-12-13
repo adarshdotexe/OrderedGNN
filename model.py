@@ -87,7 +87,7 @@ class GONN(Module):
             else:
                 x = F.dropout(x, p=self.params['dropout_rate'], training=self.training)
             x, cell_state = self.convs[j](x, edge_index, last_cell_state=cell_state, y=y)
-            x+=
+            x+=y
             check_signal.append(dict(zip(['tm_signal'], [cell_state])))
 
         x = F.dropout(x, p=self.params['dropout_rate'], training=self.training)
