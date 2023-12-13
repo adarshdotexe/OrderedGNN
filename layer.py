@@ -26,9 +26,9 @@ class OGNNConv(MessagePassing):
 
         m = self.propagate(edge_index, x=x, m=None)
         # tm_signal_raw = F.sigmoid(self.tm_net(torch.cat((x, m), dim=1)))
-        in_signal_raw = F.sigmoid(self.in_net(torch.cat((x, m), dim=1)), dim=-1)
-        fr_signal_raw = F.sigmoid(self.fr_net(torch.cat((x, m), dim=1)), dim=-1)
-        op_signal_raw = F.sigmoid(self.op_net(torch.cat((x, m), dim=1)), dim=-1)
+        in_signal_raw = F.sigmoid(self.in_net(torch.cat((x, m), dim=1)))
+        fr_signal_raw = F.sigmoid(self.fr_net(torch.cat((x, m), dim=1)))
+        op_signal_raw = F.sigmoid(self.op_net(torch.cat((x, m), dim=1)))
         cell_signal_raw = F.tanh(self.cell_net(torch.cat((x, m), dim=1)))
 
         in_signal = in_signal_raw.repeat_interleave(repeats=int(self.params['hidden_channel']/self.params['chunk_size']), dim=1)
