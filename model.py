@@ -66,7 +66,7 @@ class GONN(Module):
             if params['model']=="OGNN":
                 self.convs.append(OGNNConv(in_net=self.in_net[i], fr_net=self.fr_net[i], op_net=self.op_net[i], cell_net=self.cell_net[i], tm_norm=self.tm_norm[i], params=params))
 
-        self.params_conv = list(set(list(self.convs.parameters())+list(self.tm_net.parameters())+list(self.pr_net.parameters())))
+        self.params_conv = list(set(list(self.convs.parameters())+list(self.in_net.parameters())+list(self.fr_net.parameters())+list(self.op_net.parameters())+list(self.cell_net.parameters())))
         self.params_others = list(self.linear_trans_in.parameters())+list(self.linear_trans_out.parameters())
 
     def forward(self, x, edge_index):
