@@ -61,7 +61,7 @@ class GONN(Module):
     def forward(self, x, edge_index):
         check_signal = []
 
-        for i in range(len(self.linear_trans_in)):
+        for i in range(1,len(self.linear_trans_in)+1):
             x = F.dropout(x, p=self.params['dropout_rate'], training=self.training)
             x = F.gelu(self.linear_trans_in[i](x))
             x = self.norm_input[i](x)
@@ -76,7 +76,7 @@ class GONN(Module):
             else:
                 x = F.dropout(x, p=self.params['dropout_rate'], training=self.training)
             x, tm_signal = self.convs[j](x, edge_index, last_tm_signal=tm_signal)
-            x+=y*(1-tm_signal.repeat_interleave(repeats=int(self.params['hidden_channel']/self.params['chunk_size']), dim=0))
+            x+=F.dropout(y, p=self.params['dropout_rate'], training=self.training)*(1-tm_signal.repeat_interleave(repeats=int(self.params['hidden_channel']/self.params['chunk_size']), dim=0))
             check_signal.append(dict(zip(['tm_signal'], [tm_signal])))
 
         x = F.dropout(x, p=self.params['dropout_rate'], training=self.training)
