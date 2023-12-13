@@ -79,7 +79,7 @@ class GONN(Module):
         y = x
         x+=y
 
-        tm_signal = x.new_zeros(self.params['chunk_size'])
+        cell_state = x.new_zeros(self.params['chunk_size'])
 
         for j in range(len(self.convs)):
             if self.params['dropout_rate2']!='None':
