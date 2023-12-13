@@ -61,7 +61,7 @@ class GONN(Module):
     def forward(self, x, edge_index):
         check_signal = []
 
-        for i in range(1,len(self.linear_trans_in)+1):
+        for i in range(len(self.linear_trans_in)):
             x = F.dropout(x, p=self.params['dropout_rate'], training=self.training)
             x = F.gelu(self.linear_trans_in[i](x))
             x = self.norm_input[i](x)
