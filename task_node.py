@@ -103,16 +103,7 @@ def get_trainer(params):
     preconditioner = None
     criterion = torch.nn.NLLLoss()
     if params['preconditioner'] == True:
-        preconditioner = psgd.KFAC(
-                model, 
-                eps, 
-                sua=False, 
-                pi=False, 
-                update_freq=update_freq,
-                alpha=alpha if alpha is not None else 1.,
-                constraint_norm=False
-            )
-    lam = (float(epoch)/float(epochs))**gamma if gamma is not None else 0.
+        preconditioner = psgd.KFAC(model, eps=1, sua=False, pi=False, update_freq=params['update_freq'], alpha=1., constraint_norm=False)
     
     if params['weight_decay2']=="None":
         optimizer = torch.optim.Adam(model.parameters(), lr=params['learning_rate'], weight_decay=params['weight_decay'])
@@ -124,15 +115,21 @@ def get_trainer(params):
     if dataset_name in ['ogbn-arxiv']:
         trainer = dict(zip(['data', 'device', 'model', 'criterion', 'optimizer', 'split_idx', 'evaluator', 'params', 'preconditioner'], [data, device, model, criterion, optimizer, split_idx, evaluator, params, preconditioner]))
     else:
-        trainer = dict(zip(['data', 'device', 'model', 'criterion', 'optimizer', 'params'], [data, device, model, criterion, optimizer, params]))
+        trainer = dict(zip(['data', 'device', 'model', 'criterion', 'optimizer', 'params', 'preconditioner'], [data, device, model, criterion, optimizer, params, preconditioner]))
 
     return trainer
 
-def get_metric(trainer, stage):
+def get_metric(trainer, stage, epoch):
+
+
     if trainer['params']['task'] in ['ogbn-arxiv']:
-        data, device, model, criterion, optimizer, split_idx, evaluator, params= trainer.values()
+        data, device, model, criterion, optimizer, split_idx, evaluator, params, preconditioner = trainer.values()
     else:
-        data, device, model, criterion, optimizer, params = trainer.values()
+        data, device, model, criterion, optimizer, params, preconditioner = trainer.values()
+
+    epochs = params['epochs']
+    gamma = params['gamma']
+    lam = (float(epoch)/float(epochs))**gamma if gamma is not None else 0.
 
     if stage=='train':
         torch.set_grad_enabled(True)
@@ -163,7 +160,7 @@ def get_metric(trainer, stage):
     if stage=='train':
         loss.backward()
         if preconditioner:
-            preconditioner.step(lam=0)
+            preconditioner.step(lam=lam)
         optimizer.step()
         optimizer.zero_grad()
 

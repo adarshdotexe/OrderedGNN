@@ -86,7 +86,7 @@ def runner(wandb_config, params_default):
         for epoch in range(params['epochs']):
             
             start_time = time.time()
-            metrics = get_metric(trainer=trainer, stage='train')
+            metrics = get_metric(trainer=trainer, stage='train', epoch=epoch)
             end_time = time.time()
             time_consumed = end_time-start_time
             time_all.append(time_consumed)

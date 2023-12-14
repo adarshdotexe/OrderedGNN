@@ -3,9 +3,9 @@ add_self_loops:
 agent_package:
 - 100
 chunk_size:
-- 64
+- 256
 diff_or:
-- false
+- true
 dropout_rate:
 - 0.5
 dropout_rate2:
@@ -22,25 +22,27 @@ learning_rate:
 - 0.0001
 log_freq:
 - 50
+update_freq:
+- 50
 model:
 - GAT
 - OGNN
 num_layers:
-- 4
+- 32
 num_layers_input:
 - 2
 patience:
-- 200
+- 2000
 save_model:
 - false
 seed:
 - 42
 simple_gating:
-- true
+- false
 task:
 - CiteSeer_full
 tm:
-- false
+- true
 sm:
 - false
 weight_decay:
