@@ -12,7 +12,7 @@ class OGNNConv(MessagePassing):
         self.in_net = in_net
         self.fr_net = fr_net
         self.op_net = op_net
-        self.dropout = nn.Dropout(p=params['dropout'])
+        self.dropout = nn.Dropout(p=params['dropout_rate'])
         self.lin = nn.Linear(params['hidden_channel'], params['hidden_channel'])
         self.att = nn.Parameter(torch.Tensor(3*params['hidden_channel'], 1))
         self.tm_norm = tm_norm
@@ -67,6 +67,6 @@ class OGNNConv(MessagePassing):
 
             # Apply dropout to node features
             x_j = self.dropout_layer(x_j)
-            
+
             # Multiply node features by attention coefficients
             return x_j * alpha.view(-1, self.heads, 1)

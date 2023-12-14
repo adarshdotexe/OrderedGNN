@@ -50,4 +50,6 @@ weight_decay:
 weight_decay2:
 - None
 preconditioner:
-- false
+- true
+gamma:
+- 1
