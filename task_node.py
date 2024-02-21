@@ -109,7 +109,7 @@ def get_trainer(params):
     
     model.apply(weights_init)
 
-    criterion = torch.nn.MSELoss()
+    criterion = torch.nn.NLLLoss()
     
     if params['weight_decay2']=="None":
         optimizer = torch.optim.Adam(model.parameters(), lr=params['learning_rate'], weight_decay=params['weight_decay'])
