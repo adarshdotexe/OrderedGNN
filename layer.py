@@ -25,7 +25,8 @@ class ONGNNConv(MessagePassing):
                 edge_index, _ = add_self_loops(edge_index, num_nodes=x.size(0))
 
         m = self.propagate(edge_index, x=x, m=None, v=None, bool=True)
-        att = self.propagate(edge_index, x=self.key(x), m=self.query(m), v=self.value(x))
+        print(m)
+        m = self.propagate(edge_index, x=self.key(x), m=self.query(m), v=self.value(x))
 
         if self.params['tm']==True:
             if self.params['simple_gating']==True:
@@ -47,7 +48,6 @@ class ONGNNConv(MessagePassing):
     
     def message(self, x_j, m_i, v_j, bool=False):
         print(x_j, m_i, v_j)
-
 
         if bool==True:
             return x_j
