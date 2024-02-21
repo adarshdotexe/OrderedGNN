@@ -100,8 +100,14 @@ def get_trainer(params):
         model = Encoder(params).to(device)
 
         # Apply weight initialization He
-    for m in model.modules():
-            torch.nn.init.kaiming_normal_(m.weight)
+
+    def weights_init(m):
+        if isinstance(m, torch.nn.Linear):
+            torch.nn.init.kaiming_normal_(m.weight.data)
+            if m.bias is not None:
+                torch.nn.init.zeros_(m.bias.data)
+    
+    model.apply(weights_init)
 
     criterion = torch.nn.NLLLoss()
     
