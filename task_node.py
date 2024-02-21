@@ -112,7 +112,14 @@ def get_trainer(params):
 
     criterion = torch.nn.NLLLoss()
 
-    dataloader = NeighborLoader(data, batch_size=100, shuffle=True)
+    dataloader = NeighborLoader(
+            data,
+            # Sample 30 neighbors for each node for 2 iterations
+            num_neighbors=[30] * 2,
+            # Use a batch size of 128 for sampling training nodes
+            batch_size=128,
+            input_nodes=data.train_mask,
+        )
     
     if params['weight_decay2']=="None":
         optimizer = torch.optim.Adam(model.parameters(), lr=params['learning_rate'], weight_decay=params['weight_decay'])
