@@ -112,7 +112,7 @@ def get_trainer(params):
 
     criterion = torch.nn.NLLLoss()
 
-    dataloader = GraphSAINTSampler(data, batch_size=params['batch_size'], shuffle=True)
+    dataloader = GraphSAINTSampler(data, batch_size=100, shuffle=True)
     
     if params['weight_decay2']=="None":
         optimizer = torch.optim.Adam(model.parameters(), lr=params['learning_rate'], weight_decay=params['weight_decay'])
