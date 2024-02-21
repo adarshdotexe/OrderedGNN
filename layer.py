@@ -54,7 +54,7 @@ class ONGNNConv(MessagePassing):
         value = v_j
 
         alpha = (query * key).sum(dim=-1) / self.params['hidden_channel']
-        alpha = F.leaky_relu(alpha, self.params['leaky_relu'])
+        alpha = F.leaky_relu(alpha, 0.2)
 
         return value * alpha.view(-1, 1)
     
