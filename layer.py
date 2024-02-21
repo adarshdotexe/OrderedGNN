@@ -11,8 +11,8 @@ class ONGNNConv(MessagePassing):
         self.params = params
         self.tm_net = tm_net
         self.tm_norm = tm_norm
-        self.query = torch.nn.Linear(2*params['hidden_channel'], 2*params['hidden_channel'])
-        self.key = torch.nn.Linear(params['hidden_channel'], 2*params['hidden_channel'])
+        self.query = torch.nn.Linear(2*params['hidden_channel'], params['hidden_channel'])
+        self.key = torch.nn.Linear(params['hidden_channel'], params['hidden_channel'])
         self.value = torch.nn.Linear(params['hidden_channel'], params['hidden_channel'])
 
     def forward(self, x, edge_index, last_tm_signal):
