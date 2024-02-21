@@ -25,7 +25,7 @@ class ONGNNConv(MessagePassing):
                 edge_index, _ = add_self_loops(edge_index, num_nodes=x.size(0))
 
         m = self.propagate(edge_index, x=x, m=None)
-        m = self.propagate(edge_index, x=x, m=m)
+        m = self.propagate(edge_index, x=self.key(x), m=self.query(m))
         if self.params['tm']==True:
             if self.params['simple_gating']==True:
                 tm_signal_raw = F.sigmoid(self.tm_net(torch.cat((x, m), dim=1)))    
@@ -48,9 +48,8 @@ class ONGNNConv(MessagePassing):
 
         if m_i is None:
             return x_j
-        
-        query = self.query(m_i)
-        key = self.key(x_j)
+        query = m_i
+        key = x_j
 
         alpha = (query * key).sum(dim=-1) / self.params['hidden_channel']
         alpha = F.leaky_relu(alpha, self.params['leaky_relu'])
