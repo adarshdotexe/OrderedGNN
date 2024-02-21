@@ -8,6 +8,7 @@ from torch_geometric.datasets import Planetoid, Actor, WebKB, WikipediaNetwork
 from ogb.nodeproppred import PygNodePropPredDataset, Evaluator
 from datasets.datasets_linkx.dataset import load_nc_dataset
 from torch_geometric.data import Data
+from torch_geometric.loader import GraphSAINTSampler
 from torch_sparse import SparseTensor
 
 def get_trainer(params):
@@ -110,6 +111,8 @@ def get_trainer(params):
     model.apply(weights_init)
 
     criterion = torch.nn.NLLLoss()
+
+    dataloader = GraphSAINTSampler(data, batch_size=params['batch_size'], shuffle=True)
     
     if params['weight_decay2']=="None":
         optimizer = torch.optim.Adam(model.parameters(), lr=params['learning_rate'], weight_decay=params['weight_decay'])
@@ -119,17 +122,17 @@ def get_trainer(params):
                                 lr=params['learning_rate'])
 
     if dataset_name in ['ogbn-arxiv']:
-        trainer = dict(zip(['data', 'device', 'model', 'criterion', 'optimizer', 'split_idx', 'evaluator', 'params'], [data, device, model, criterion, optimizer, split_idx, evaluator, params]))
+        trainer = dict(zip(['dataloader', 'device', 'model', 'criterion', 'optimizer', 'split_idx', 'evaluator', 'params'], [dataloader, device, model, criterion, optimizer, split_idx, evaluator, params]))
     else:
-        trainer = dict(zip(['data', 'device', 'model', 'criterion', 'optimizer', 'params'], [data, device, model, criterion, optimizer, params]))
+        trainer = dict(zip(['dataloader', 'device', 'model', 'criterion', 'optimizer', 'params'], [dataloader, device, model, criterion, optimizer, params]))
 
     return trainer
 
 def get_metric(trainer, stage):
     if trainer['params']['task'] in ['ogbn-arxiv']:
-        data, device, model, criterion, optimizer, split_idx, evaluator, params= trainer.values()
+        dataloader, device, model, criterion, optimizer, split_idx, evaluator, params= trainer.values()
     else:
-        data, device, model, criterion, optimizer, params = trainer.values()
+        dataloader, device, model, criterion, optimizer, params = trainer.values()
 
     if stage=='train':
         torch.set_grad_enabled(True)
@@ -137,38 +140,48 @@ def get_metric(trainer, stage):
     else:
         torch.set_grad_enabled(False)
         model.eval()
-    
-    data = data.to(device)
 
-    if params['task']=='ogbn-arxiv':
-        mask = split_idx['valid'] if stage=='val' else split_idx[stage]
-        mask = mask.to(device)
-        encode_values = model(data.x, data.adj_t)
-        vec = encode_values['x']
-        pred = F.log_softmax(vec, dim=-1)
-        loss = criterion(pred[mask], data.y.squeeze(1)[mask])
-    else:
-        for _, mask_tensor in data(stage+'_mask'):
-            mask = mask_tensor
-        encode_values = model(data.x, data.adj_t)
-        vec = encode_values['x']
-        pred = F.log_softmax(vec, dim=-1)
-        loss = criterion(pred[mask], data.y[mask])
-    
-    if stage=='train':
-        loss.backward()
-        optimizer.step()
-        optimizer.zero_grad()
+    total_loss = 0
+    total_acc = 0
 
-    if params['task']=='ogbn-arxiv':
-        y_pred = vec.argmax(dim=-1, keepdim=True)
-        acc = evaluator.eval({
-            'y_true': data.y[mask],
-            'y_pred': y_pred[mask],
-        })['acc']
-    else:
-        acc = float((pred[mask].argmax(-1) == data.y[mask]).sum() / mask.sum())
+    for data in dataloader:
+        data = data.to(device)
 
-    metrics = dict(zip(['metric', 'loss', 'encode_values'], [acc, loss.item(), encode_values]))
+        if params['task']=='ogbn-arxiv':
+            mask = split_idx['valid'] if stage=='val' else split_idx[stage]
+            mask = mask.to(device)
+            encode_values = model(data.x, data.adj_t)
+            vec = encode_values['x']
+            pred = F.log_softmax(vec, dim=-1)
+            loss = criterion(pred[mask], data.y.squeeze(1)[mask])
+        else:
+            for _, mask_tensor in data(stage+'_mask'):
+                mask = mask_tensor
+            encode_values = model(data.x, data.adj_t)
+            vec = encode_values['x']
+            pred = F.log_softmax(vec, dim=-1)
+            loss = criterion(pred[mask], data.y[mask])
+
+        if stage=='train':
+            loss.backward()
+            optimizer.step()
+            optimizer.zero_grad()
+
+        if params['task']=='ogbn-arxiv':
+            y_pred = vec.argmax(dim=-1, keepdim=True)
+            acc = evaluator.eval({
+                'y_true': data.y[mask],
+                'y_pred': y_pred[mask],
+            })['acc']
+        else:
+            acc = float((pred[mask].argmax(-1) == data.y[mask]).sum() / mask.sum())
+
+        total_loss += loss.item()
+        total_acc += acc
+
+    avg_loss = total_loss / len(dataloader)
+    avg_acc = total_acc / len(dataloader)
+
+    metrics = dict(zip(['metric', 'loss', 'encode_values'], [avg_acc, avg_loss, encode_values]))
 
     return metrics
