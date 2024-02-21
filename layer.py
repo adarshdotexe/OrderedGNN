@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-from mp_deterministic import MessagePassing
+from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import remove_self_loops, add_self_loops
 from torch_sparse import SparseTensor, fill_diag
 
