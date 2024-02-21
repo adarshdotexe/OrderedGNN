@@ -44,18 +44,19 @@ class ONGNNConv(MessagePassing):
 
         return out, tm_signal_raw
     
-    def message(self, x_i, x_j, m_i):
+    def message(self, x_j, m_i):
+
         if m_i is None:
             return x_j
-        else:
-            return self.my_new_message(x_i, x_j, m_i)
-    
-    def my_new_message(self, x_i, x_j, m_i):
+        
         query = self.query(m_i)
         key = self.key(x_j)
 
         alpha = (query * key).sum(dim=-1) / self.params['hidden_channel']
         alpha = F.leaky_relu(alpha, self.params['leaky_relu'])
+        print(alpha)
+        print(x_j)
+        print(self.value(x_j) * alpha.view(-1, 1))
 
         return self.value(x_j) * alpha.view(-1, 1)
     
