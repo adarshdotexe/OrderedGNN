@@ -50,14 +50,15 @@ class ONGNNConv(MessagePassing):
 
         if q_i is None:
             return x_j
-        query = q_i
-        key = k_j
-        value = v_j
+        # query = q_i
+        # key = k_j
+        # value = v_j
 
-        attention = (query * key).sum(-1) / math.sqrt(self.params['hidden_channel'])
-        # leaky relu
-        attention = F.leaky_relu(attention, negative_slope=0.2)
-        out = attention.view(-1, 1) * value
+        # attention = (query * key).sum(-1) / math.sqrt(self.params['hidden_channel'])
+        # # leaky relu
+        # attention = F.leaky_relu(attention, negative_slope=0.2)
+        # out = attention.view(-1, 1) * value
+        out = x_j
 
         return out
     
