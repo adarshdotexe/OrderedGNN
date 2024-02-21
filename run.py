@@ -118,7 +118,7 @@ def runner(wandb_config, params_default):
             else:
                 bad_cnt += 1
 
-            if bad_cnt==2000:
+            if bad_cnt==200:
                 break
         
         print('Final metric is [%s]'%(best_test_metric))

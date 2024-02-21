@@ -13,7 +13,7 @@ class ONGNNConv(MessagePassing):
         self.tm_norm = tm_norm
         self.query = torch.nn.Linear(2*params['hidden_channel'], params['hidden_channel'])
         self.key = torch.nn.Linear(params['hidden_channel'], params['hidden_channel'])
-        self.value = torch.nn.Linear(params['hidden_channel'], params['hidden_channel'])
+        self.value = torch.nn.Linear(2*params['hidden_channel'], params['hidden_channel'])
 
     def forward(self, x, edge_index, last_tm_signal):
         if isinstance(edge_index, SparseTensor):
@@ -25,8 +25,8 @@ class ONGNNConv(MessagePassing):
             if self.params['add_self_loops']==True:
                 edge_index, _ = add_self_loops(edge_index, num_nodes=x.size(0))
 
-        m = self.propagate(edge_index, x=x, m=None)
-        m = self.propagate(edge_index, x=x, m=m)
+        m = self.propagate(edge_index, x=x, q=None, k=None, v=None)
+        m = self.propagate(edge_index, x=x, q=self.query(torch.cat((x, m), dim=1)), k=self.key(x), v=self.value(torch.cat((x, m), dim=1)))
 
         if self.params['tm']==True:
             if self.params['simple_gating']==True:
@@ -46,18 +46,17 @@ class ONGNNConv(MessagePassing):
 
         return out, tm_signal_raw
     
-    def message(self, x_i, x_j, m_i):
+    def message(self, x_j, q_i, k_j, v_j):
 
-        if m_i is None:
+        if q_i is None:
             return x_j
-        query = self.query(torch.cat((x_i, m_i), dim=1))
-        key = self.key(x_j)
-        value = x_j
+        query = q_i
+        key = k_j
+        value = v_j
 
-        attention = torch.matmul(query, key.transpose(0,1))/math.sqrt(self.params['hidden_channel'])
-        # relu is used to prevent negative attention
-        attention = F.relu(attention)
-        out = torch.matmul(attention, value)
+        attention = (query * key).sum(-1) / math.sqrt(self.params['hidden_channel'])
+        attention = F.softmax(attention, dim=1)
+        out = attention.view(-1, 1) * value
 
         return out
     
