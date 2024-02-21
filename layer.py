@@ -24,7 +24,7 @@ class ONGNNConv(MessagePassing):
             if self.params['add_self_loops']==True:
                 edge_index, _ = add_self_loops(edge_index, num_nodes=x.size(0))
 
-        m = self.propagate(edge_index, x=x, bool=True)
+        m = self.propagate(edge_index, x=x, m=None, v=None, bool=True)
         att = self.propagate(edge_index, x=self.key(x), m=self.query(m), v=self.value(x))
 
         if self.params['tm']==True:
