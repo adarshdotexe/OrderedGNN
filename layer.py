@@ -55,9 +55,9 @@ class ONGNNConv(MessagePassing):
         value = x_j
 
         attention = torch.matmul(query, key.transpose(0,1))/math.sqrt(self.params['hidden_channel'])
-        attention = F.softmax(attention, dim=-1)
+        # relu is used to prevent negative attention
+        attention = F.relu(attention)
         out = torch.matmul(attention, value)
-
 
         return out
     
