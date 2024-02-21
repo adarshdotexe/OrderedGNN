@@ -1,4 +1,5 @@
 import torch
+import math
 import torch.nn.functional as F
 from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import remove_self_loops, add_self_loops
@@ -53,8 +54,9 @@ class ONGNNConv(MessagePassing):
         key = self.key(x_j)
         value = self.value(x_j)
 
-        alpha = (query * key).sum(dim=-1) / (2 *self.params['hidden_channel'])
-        alpha = F.softmax(alpha, dim=1)
+        attention = torch.matmul(query, key.transpose(0, 1)) / math.sqrt(query.size(-1))
+        attention = F.softmax(attention, dim=-1)
+        out = torch.matmul(attention, value)
 
-        return value * alpha.view(-1, 1)
+        return out
     
