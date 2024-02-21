@@ -46,6 +46,8 @@ class ONGNNConv(MessagePassing):
         return out, tm_signal_raw
     
     def message(self, x_j, m_i, v_j, bool=False):
+        print(x_j, m_i, v_j)
+
 
         if bool==True:
             return x_j
