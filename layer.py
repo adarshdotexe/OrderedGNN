@@ -13,7 +13,7 @@ class ONGNNConv(MessagePassing):
         self.tm_norm = tm_norm
         self.query = torch.nn.Linear(2*params['hidden_channel'], params['hidden_channel'])
         self.key = torch.nn.Linear(2*params['hidden_channel'], params['hidden_channel'])
-        self.value = torch.nn.Linear(3*params['hidden_channel'], params['hidden_channel'])
+        self.value = torch.nn.Linear(2*params['hidden_channel'], params['hidden_channel'])
 
     def forward(self, x, edge_index, last_tm_signal):
         if isinstance(edge_index, SparseTensor):
@@ -52,9 +52,9 @@ class ONGNNConv(MessagePassing):
             return x_j
         query = self.query(torch.cat((x_i, x_j), dim=1))
         key = self.key(torch.cat((x_i, m_i), dim=1))
-        value = self.value(torch.cat((x_i, x_j, m_i), dim=1))
+        value = x_j
         attention = (query * key).sum(-1) / math.sqrt(self.params['hidden_channel'])
-        attention = F.leaky_relu(attention, negative_slope=0.2)
+        attention = F.leaky_relu(-attention, negative_slope=0.2)
         out = attention.view(-1, 1) * value
         return out
     
