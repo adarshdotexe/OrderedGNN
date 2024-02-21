@@ -52,11 +52,12 @@ class ONGNNConv(MessagePassing):
             return x_j
         query = self.query(torch.cat((x_i, m_i), dim=1))
         key = self.key(x_j)
-        value = self.value(x_j)
+        value = x_j
 
-        attention = torch.matmul(query, key.transpose(0, 1)) / math.sqrt(query.size(-1))
+        attention = torch.matmul(query, key.transpose(0,1))/math.sqrt(self.params['hidden_channel'])
         attention = F.softmax(attention, dim=-1)
         out = torch.matmul(attention, value)
+
 
         return out
     

@@ -99,6 +99,10 @@ def get_trainer(params):
         from baseline import GAT as Encoder
         model = Encoder(params).to(device)
 
+        # Apply weight initialization He
+    for m in model.modules():
+            torch.nn.init.kaiming_normal_(m.weight)
+
     criterion = torch.nn.NLLLoss()
     
     if params['weight_decay2']=="None":
