@@ -8,7 +8,7 @@ from torch_geometric.datasets import Planetoid, Actor, WebKB, WikipediaNetwork
 from ogb.nodeproppred import PygNodePropPredDataset, Evaluator
 from datasets.datasets_linkx.dataset import load_nc_dataset
 from torch_geometric.data import Data
-from torch_geometric.loader import GraphSAINTSampler
+from torch_geometric.loader import NeighborLoader
 from torch_sparse import SparseTensor
 
 def get_trainer(params):
@@ -112,7 +112,7 @@ def get_trainer(params):
 
     criterion = torch.nn.NLLLoss()
 
-    dataloader = GraphSAINTSampler(data, batch_size=100, shuffle=True)
+    dataloader = NeighborLoader(data, batch_size=100, shuffle=True)
     
     if params['weight_decay2']=="None":
         optimizer = torch.optim.Adam(model.parameters(), lr=params['learning_rate'], weight_decay=params['weight_decay'])
