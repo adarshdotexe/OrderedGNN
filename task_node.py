@@ -5,6 +5,7 @@ import torch.nn.functional as F
 import torch_geometric.transforms as T
 from torch_geometric.utils import negative_sampling
 from torch_geometric.datasets import Planetoid, Actor, WebKB, WikipediaNetwork
+import psgd
 
 from ogb.nodeproppred import PygNodePropPredDataset, Evaluator
 from datasets.datasets_linkx.dataset import load_nc_dataset
@@ -103,6 +104,16 @@ def get_trainer(params):
         model = Encoder(params).to(device)
 
     criterion = torch.nn.NLLLoss()
+
+    preconditioner = psgd.KFAC(
+                model, 
+                eps=0.01, 
+                sua=False, 
+                pi=False, 
+                update_freq=50,
+                alpha=1.,
+                constraint_norm=False
+            )
     
     if params['weight_decay2']=="None":
         optimizer = torch.optim.Adam(model.parameters(), lr=params['learning_rate'], weight_decay=params['weight_decay'])
@@ -118,7 +129,7 @@ def get_trainer(params):
 
     return trainer
 
-def get_metric(trainer, stage):
+def get_metric(trainer, stage, lam=0.):
     if trainer['params']['task'] in ['ogbn-arxiv']:
         data, device, model, criterion, optimizer, split_idx, evaluator, params= trainer.values()
     else:
@@ -140,7 +151,7 @@ def get_metric(trainer, stage):
         vec = encode_values['x']
         pred = F.log_softmax(vec, dim=-1)
         loss = criterion(pred[mask], data.y.squeeze(1)[mask])
-        loss2 = 0.2 * criterion(pred[~mask], data.y.squeeze(1)[~mask])
+        loss += lam * criterion(pred[~mask], data.y.squeeze(1)[~mask])
 
     else:
         for _, mask_tensor in data(stage+'_mask'):
@@ -149,11 +160,10 @@ def get_metric(trainer, stage):
         vec = encode_values['x']
         pred = F.log_softmax(vec, dim=-1)
         loss = criterion(pred[mask], data.y[mask])
-        loss2 = 0.2 * criterion(pred[~mask], data.y[~mask])
+        loss += 1 * criterion(pred[~mask], data.y[~mask])
 
     if stage=='train':
-        loss.backward()
-        loss2.backward()
+        loss.backward(retain_graph=True)
         optimizer.step()
 
     if params['task']=='ogbn-arxiv':

@@ -100,18 +100,18 @@ def runner(wandb_config, params_default):
         #         writer.add_scalar('loss/pretrain', metrics['loss'], epoch)
 
         for epoch in range(params['epochs']):
-            
+            lam = (epoch/params['epochs'])**(0.0)
             start_time = time.time()
-            metrics = get_metric(trainer=trainer, stage='train')
+            metrics = get_metric(trainer=trainer, stage='train', lam=lam)
             trainer['optimizer'].zero_grad()
             end_time = time.time()
             time_consumed = end_time-start_time
             time_all.append(time_consumed)
 
             train_metric, train_loss, train_encode_values = metrics['metric'], metrics['loss'], metrics['encode_values']
-            metrics = get_metric(trainer=trainer, stage='val')
+            metrics = get_metric(trainer=trainer, stage='val', lam=0.)
             val_metric, val_loss, val_encode_values = metrics['metric'], metrics['loss'], metrics['encode_values']
-            metrics = get_metric(trainer=trainer, stage='test')
+            metrics = get_metric(trainer=trainer, stage='test', lam=0.)
             test_metric, test_loss, test_encode_values = metrics['metric'], metrics['loss'], metrics['encode_values']
 
             if epoch%params['log_freq']==0:
