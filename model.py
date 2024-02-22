@@ -44,10 +44,7 @@ class GONN(Module):
         for layer in self.params_conv:
             if layer.dim() > 1:
                 torch.nn.init.kaiming_uniform_(layer)
-        for layer in self.params_others:
-            if layer.dim() > 1:
-                torch.nn.init.kaiming_uniform_(layer)
-                
+
 
     def forward(self, x, edge_index):
         check_signal = []
