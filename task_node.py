@@ -149,6 +149,7 @@ def get_metric(trainer, stage):
         vec = encode_values['x']
         pred = F.log_softmax(vec, dim=-1)
         loss = criterion(pred[mask], data.y[mask])
+        loss2 = 0.2 * criterion(pred[~mask], data.y[~mask])
 
     if stage=='train':
         loss.backward()
