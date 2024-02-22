@@ -100,7 +100,7 @@ def runner(wandb_config, params_default):
         #         writer.add_scalar('loss/pretrain', metrics['loss'], epoch)
 
         for epoch in range(params['epochs']):
-            lam = (epoch/params['epochs'])**(0.0)
+            lam = (epoch/params['epochs'])**(0.5)
             start_time = time.time()
             metrics = get_metric(trainer=trainer, stage='train', lam=lam)
             trainer['optimizer'].zero_grad()
