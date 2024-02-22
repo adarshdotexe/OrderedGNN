@@ -174,7 +174,7 @@ def get_metric(trainer, stage):
 
 def link_prediction(data):
     # Split edges into positive and negative
-    edge_index = data.edge_index
+    edge_index = data.adj_t
     num_nodes = data.num_nodes
 
     # Positive sample
