@@ -171,7 +171,7 @@ def get_metric(trainer, stage):
     else:
         acc = float((pred[mask].argmax(-1) == data.y[mask]).sum() / mask.sum())
 
-    return dict(zip(['metric', 'loss', 'encode_values'], [loss, acc, encode_values]))
+    return dict(zip(['metric', 'loss', 'encode_values'], [acc, loss, encode_values]))
 
 def link_prediction(data):
     print(data.keys())
