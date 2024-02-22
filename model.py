@@ -23,9 +23,8 @@ class GONN(Module):
 
 
         for i in range(params['num_layers']):
-            
             if params['model']=="ONGNN":
-                self.convs.append(ONGNNConv(tm_net=Linear(2*params['hidden_channel'], params['chunk_size']), tm_norm=LayerNorm(params['hidden_channel']), params=params))
+                self.convs.append(ONGNNConv(params=params))
         
         # Initialize the conv layers and the linear transformation layers with the same He initialization
         self.params_conv = list(set(list(self.convs.parameters())))

@@ -6,11 +6,11 @@ from torch_geometric.utils import remove_self_loops, add_self_loops
 from torch_sparse import SparseTensor, fill_diag
 
 class ONGNNConv(MessagePassing):
-    def __init__(self, tm_net, tm_norm, params):
+    def __init__(self, params):
         super(ONGNNConv, self).__init__(aggr='mean')
         self.params = params
-        self.tm_net = tm_net
-        self.tm_norm = tm_norm
+        self.tm_net = torch.nn.Linear(2*params['hidden_channel'], params['chunk_size'])
+        self.tm_norm = torch.nn.LayerNorm(params['hidden_channel'])
         self.query = torch.nn.Linear(2*params['hidden_channel'], params['hidden_channel'])
         self.key = torch.nn.Linear(2*params['hidden_channel'], params['hidden_channel'])
         self.value = torch.nn.Linear(2*params['hidden_channel'], params['hidden_channel'])
@@ -47,14 +47,18 @@ class ONGNNConv(MessagePassing):
         return out, tm_signal_raw
     
     def message(self, x_i, x_j, m_i):
-
         if m_i is None:
             return x_j
-        query = self.query(torch.cat((x_i, x_j), dim=1))
-        key = self.key(torch.cat((x_i, m_i), dim=1))
-        value = x_j
+        query = self.query(torch.cat((x_i, m_i), dim=1))
+        query = F.softmax(query, dim=-1)
+
+        key = self.key(torch.cat((x_j, m_i), dim=1))
+        key = F.softmax(key, dim=-1)
+
+        value = self.value(torch.cat((x_j, m_i), dim=1))
         attention = (query * key).sum(-1) / math.sqrt(self.params['hidden_channel'])
         attention = F.leaky_relu(-attention, negative_slope=0.2)
+        attention = F.dropout(attention, p=0.2, training=self.training)
         out = attention.view(-1, 1) * value
-        return x_j
+        return out
     
