@@ -87,6 +87,7 @@ def runner(wandb_config, params_default):
             
             start_time = time.time()
             metrics = get_metric(trainer=trainer, stage='train')
+            trainer['optimizer'].zero_grad()
             end_time = time.time()
             time_consumed = end_time-start_time
             time_all.append(time_consumed)

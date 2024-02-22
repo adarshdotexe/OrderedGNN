@@ -171,7 +171,6 @@ def get_metric(trainer, stage):
         if stage=='train':
             loss.backward()
             optimizer.step()
-            optimizer.zero_grad()
 
         if params['task']=='ogbn-arxiv':
             y_pred = vec.argmax(dim=-1, keepdim=True)
