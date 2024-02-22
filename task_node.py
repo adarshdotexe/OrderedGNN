@@ -3,6 +3,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import torch_geometric.transforms as T
+from torch_geometric.utils import negative_sampling
 from torch_geometric.datasets import Planetoid, Actor, WebKB, WikipediaNetwork
 
 from ogb.nodeproppred import PygNodePropPredDataset, Evaluator
@@ -114,8 +115,8 @@ def get_trainer(params):
 
     dataloader = NeighborLoader(
             data,
-            num_neighbors=[10] * params['num_layers'],
-            batch_size=128,
+            num_neighbors=[10] * 5,
+            batch_size=256,
             input_nodes=data.train_mask,
         )
     
@@ -189,3 +190,32 @@ def get_metric(trainer, stage):
     metrics = dict(zip(['metric', 'loss', 'encode_values'], [avg_acc, avg_loss, encode_values]))
 
     return metrics
+
+def link_prediction(data):
+    # Split edges into positive and negative
+    edge_index = data.edge_index
+    num_nodes = data.num_nodes
+
+    # Positive sample
+    pos_edge_index = edge_index[:, :int(edge_index.size(1) * 0.8)]
+
+    # Negative sample
+    neg_edge_index = negative_sampling(edge_index, num_nodes=num_nodes,
+                                       num_neg_samples=pos_edge_index.size(1))
+
+    return pos_edge_index, neg_edge_index
+
+
+def train_link_prediction(model, data, pos_edge_index, neg_edge_index):
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+    criterion = torch.nn.BCELoss()
+
+    for epoch in range(100):
+        optimizer.zero_grad()
+        out = model(data.x, data.edge_index)
+        pos_loss = criterion(out[pos_edge_index], torch.ones(pos_edge_index.size(1),))
+        neg_loss = criterion(out[neg_edge_index], torch.zeros(neg_edge_index.size(1),))
+        loss = pos_loss + neg_loss
+        loss.backward()
+        optimizer.step()
+
