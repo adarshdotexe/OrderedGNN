@@ -108,14 +108,14 @@ def get_trainer(params):
             if m.bias is not None:
                 torch.nn.init.zeros_(m.bias.data)
     
-    model.apply(weights_init)
+    # model.apply(weights_init)
 
     criterion = torch.nn.NLLLoss()
 
     dataloader = NeighborLoader(
             data,
             # Sample 30 neighbors for each node for 2 iterations
-            num_neighbors=[5] * 3,
+            num_neighbors=[10] * 3,
             batch_size=256,
             input_nodes=data.train_mask,
         )

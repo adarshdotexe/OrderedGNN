@@ -50,11 +50,11 @@ class ONGNNConv(MessagePassing):
 
         if m_i is None:
             return x_j
-        query = self.query(torch.cat((x_i, x_j), dim=1))
-        key = self.key(torch.cat((x_i, m_i), dim=1))
-        value = x_j
-        attention = (query * key).sum(-1) / math.sqrt(self.params['hidden_channel'])
-        attention = F.leaky_relu(-attention, negative_slope=0.2)
-        out = attention.view(-1, 1) * value
-        return out
+        # query = self.query(torch.cat((x_i, x_j), dim=1))
+        # key = self.key(torch.cat((x_i, m_i), dim=1))
+        # value = x_j
+        # attention = (query * key).sum(-1) / math.sqrt(self.params['hidden_channel'])
+        # attention = F.leaky_relu(-attention, negative_slope=0.2)
+        # out = attention.view(-1, 1) * value
+        return x_j
     
