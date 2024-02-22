@@ -105,15 +105,15 @@ def get_trainer(params):
 
     criterion = torch.nn.NLLLoss()
 
-    preconditioner = psgd.KFAC(
-                model, 
-                eps=0.01, 
-                sua=False, 
-                pi=False, 
-                update_freq=50,
-                alpha=1.,
-                constraint_norm=False
-            )
+    # preconditioner = psgd.KFAC(
+    #             model, 
+    #             eps=0.01, 
+    #             sua=False, 
+    #             pi=False, 
+    #             update_freq=50,
+    #             alpha=1.,
+    #             constraint_norm=False
+    #         )
     
     if params['weight_decay2']=="None":
         optimizer = torch.optim.Adam(model.parameters(), lr=params['learning_rate'], weight_decay=params['weight_decay'])
