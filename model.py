@@ -12,8 +12,6 @@ class GONN(Module):
         self.norm_input = ModuleList()
         self.convs = ModuleList()
 
-        self.tm_norm = ModuleList()
-        self.tm_net = ModuleList()
 
         self.linear_trans_in.append(Linear(params['in_channel'], params['hidden_channel']))
 
@@ -23,22 +21,14 @@ class GONN(Module):
             self.linear_trans_in.append(Linear(params['hidden_channel'], params['hidden_channel']))
             self.norm_input.append(LayerNorm(params['hidden_channel']))
 
-        if params['global_gating']==True:
-            tm_net = Linear(2*params['hidden_channel'], params['chunk_size'])
 
         for i in range(params['num_layers']):
-            self.tm_norm.append(LayerNorm(params['hidden_channel']))
-            
-            if params['global_gating']==False:
-                self.tm_net.append(Linear(2*params['hidden_channel'], params['chunk_size']))
-            else:
-                self.tm_net.append(tm_net)
             
             if params['model']=="ONGNN":
-                self.convs.append(ONGNNConv(tm_net=self.tm_net[i], tm_norm=self.tm_norm[i], params=params))
+                self.convs.append(ONGNNConv(tm_net=Linear(2*params['hidden_channel'], params['chunk_size']), tm_norm=LayerNorm(params['hidden_channel']), params=params))
         
         # Initialize the conv layers and the linear transformation layers with the same He initialization
-        self.params_conv = list(set(list(self.convs.parameters())+list(self.tm_net.parameters())))
+        self.params_conv = list(set(list(self.convs.parameters())))
         self.params_others = list(self.linear_trans_in.parameters())+list(self.linear_trans_out.parameters())
 
         for layer in self.params_conv:
