@@ -115,7 +115,7 @@ def get_trainer(params):
     dataloader = NeighborLoader(
             data,
             # Sample 30 neighbors for each node for 2 iterations
-            num_neighbors=[10] * 3,
+            num_neighbors=[5] * 5,
             batch_size=256,
             input_nodes=data.train_mask,
         )
