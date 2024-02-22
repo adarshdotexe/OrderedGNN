@@ -56,5 +56,5 @@ class ONGNNConv(MessagePassing):
         attention = (query * key).sum(-1) / math.sqrt(self.params['hidden_channel'])
         attention = F.leaky_relu(-attention, negative_slope=0.2)
         out = attention.view(-1, 1) * value
-        return out
+        return x_j
     
