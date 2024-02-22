@@ -36,9 +36,18 @@ class GONN(Module):
             
             if params['model']=="ONGNN":
                 self.convs.append(ONGNNConv(tm_net=self.tm_net[i], tm_norm=self.tm_norm[i], params=params))
-
+        
+        # Initialize the conv layers and the linear transformation layers with the same He initialization
         self.params_conv = list(set(list(self.convs.parameters())+list(self.tm_net.parameters())))
         self.params_others = list(self.linear_trans_in.parameters())+list(self.linear_trans_out.parameters())
+
+        for layer in self.params_conv:
+            if layer.dim() > 1:
+                torch.nn.init.kaiming_uniform_(layer)
+        for layer in self.params_others:
+            if layer.dim() > 1:
+                torch.nn.init.kaiming_uniform_(layer)
+                
 
     def forward(self, x, edge_index):
         check_signal = []

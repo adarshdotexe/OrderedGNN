@@ -102,16 +102,6 @@ def get_trainer(params):
         from baseline import GAT as Encoder
         model = Encoder(params).to(device)
 
-        # Apply weight initialization He
-
-    def weights_init(m):
-        if isinstance(m, torch.nn.Linear):
-            torch.nn.init.kaiming_normal_(m.weight.data)
-            if m.bias is not None:
-                torch.nn.init.zeros_(m.bias.data)
-    
-    model.apply(weights_init)
-
     criterion = torch.nn.NLLLoss()
     
     if params['weight_decay2']=="None":
