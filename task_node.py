@@ -34,7 +34,6 @@ def get_trainer(params):
         data.train_mask = dataset[0].train_mask[:,int(split)]
         data.val_mask = dataset[0].val_mask[:,int(split)]
         data.test_mask = dataset[0].test_mask[:,int(split)]
-        data.edge_index = dataset[0].edge_index[:,int(split)]
         params['in_channel']=data.num_features
         params['out_channel']=dataset.num_classes
     
@@ -44,14 +43,12 @@ def get_trainer(params):
         data.train_mask = dataset[0].train_mask[:,int(split)]
         data.val_mask = dataset[0].val_mask[:,int(split)]
         data.test_mask = dataset[0].test_mask[:,int(split)]
-        data.edge_index = dataset[0].edge_index
         params['in_channel']=data.num_features
         params['out_channel']=dataset.num_classes
     
     if dataset_name in ['Cora_full','CiteSeer_full','PubMed_full']:
         dataset = Planetoid(root='datasets/datasets_pyg/', name='%s'%(dataset_name.split('_')[0]), split=dataset_name.split('_')[-1], transform=T.Compose([T.AddSelfLoops(), T.NormalizeFeatures(), T.ToSparseTensor()]))
         data = dataset[0]
-        data.edge_index = dataset[0].edge_index
         params['in_channel']=data.num_features
         params['out_channel']=dataset.num_classes
 
@@ -179,7 +176,7 @@ def get_metric(trainer, stage):
 def link_prediction(data):
     print(data.keys())
     # Split edges into positive and negative
-    edge_index = data.edge_index
+    edge_index = data.adj_t.coo()
     num_nodes = data.num_nodes
 
     # Positive sample
@@ -197,7 +194,7 @@ def train_link_prediction(model, data, pos_edge_index, neg_edge_index):
     criterion = torch.nn.BCELoss()
 
     optimizer.zero_grad()
-    out = model(data.x, data.edge_index)
+    out = model(data.x, data.adj_t)
     pos_loss = criterion(out[pos_edge_index], torch.ones(pos_edge_index.size(1),))
     neg_loss = criterion(out[neg_edge_index], torch.zeros(neg_edge_index.size(1),))
     loss = pos_loss + neg_loss
