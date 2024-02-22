@@ -140,6 +140,8 @@ def get_metric(trainer, stage):
         vec = encode_values['x']
         pred = F.log_softmax(vec, dim=-1)
         loss = criterion(pred[mask], data.y.squeeze(1)[mask])
+        loss2 = 0.2 * criterion(pred[~mask], data.y.squeeze(1)[~mask])
+
     else:
         for _, mask_tensor in data(stage+'_mask'):
             mask = mask_tensor
@@ -150,6 +152,7 @@ def get_metric(trainer, stage):
 
     if stage=='train':
         loss.backward()
+        loss2.backward()
         optimizer.step()
 
     if params['task']=='ogbn-arxiv':
