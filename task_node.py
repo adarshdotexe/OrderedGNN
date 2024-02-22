@@ -22,6 +22,7 @@ def get_trainer(params):
         data.train_mask = dataset[0].train_mask[:,int(split)]
         data.val_mask = dataset[0].val_mask[:,int(split)]
         data.test_mask = dataset[0].test_mask[:,int(split)]
+        data.edge_index = dataset[0].edge_index[:,int(split)]
         data.x = torch.eye(data.x.shape[0])
         data.adj_t = data.adj_t.t()
         params['in_channel']=data.x.shape[0]
@@ -33,6 +34,7 @@ def get_trainer(params):
         data.train_mask = dataset[0].train_mask[:,int(split)]
         data.val_mask = dataset[0].val_mask[:,int(split)]
         data.test_mask = dataset[0].test_mask[:,int(split)]
+        data.edge_index = dataset[0].edge_index[:,int(split)]
         params['in_channel']=data.num_features
         params['out_channel']=dataset.num_classes
     
@@ -42,12 +44,14 @@ def get_trainer(params):
         data.train_mask = dataset[0].train_mask[:,int(split)]
         data.val_mask = dataset[0].val_mask[:,int(split)]
         data.test_mask = dataset[0].test_mask[:,int(split)]
+        data.edge_index = dataset[0].edge_index
         params['in_channel']=data.num_features
         params['out_channel']=dataset.num_classes
     
     if dataset_name in ['Cora_full','CiteSeer_full','PubMed_full']:
         dataset = Planetoid(root='datasets/datasets_pyg/', name='%s'%(dataset_name.split('_')[0]), split=dataset_name.split('_')[-1], transform=T.Compose([T.AddSelfLoops(), T.NormalizeFeatures(), T.ToSparseTensor()]))
         data = dataset[0]
+        data.edge_index = dataset[0].edge_index
         params['in_channel']=data.num_features
         params['out_channel']=dataset.num_classes
 
@@ -75,7 +79,7 @@ def get_trainer(params):
         dataset = load_nc_dataset(dataset_name, sub_dataname='')
         edge_index = dataset[0][0]['edge_index']
         num_nodes = dataset[0][0]['num_nodes']
-        data = Data(x=dataset[0][0]['node_feat'], adj_t=SparseTensor(row=edge_index[0], col=edge_index[1], sparse_sizes=(num_nodes, num_nodes)), y=dataset[0][1].view(-1), num_nodes=dataset[0][0]['num_nodes'])
+        data = Data(x=dataset[0][0]['node_feat'], adj_t=SparseTensor(row=edge_index[0], col=edge_index[1], sparse_sizes=(num_nodes, num_nodes)), y=dataset[0][1].view(-1), num_nodes=dataset[0][0]['num_nodes'], edge_index=edge_index, num_nodes=num_nodes)
         splits = np.load('datasets/datasets_linkx/data/arxiv-year-splits.npy', allow_pickle=True)
         sizes = (data.num_nodes, len(splits))
         data.train_mask = torch.zeros(sizes, dtype=torch.bool)
@@ -173,8 +177,9 @@ def get_metric(trainer, stage):
     return dict(zip(['metric', 'loss', 'encode_values'], [loss, acc, encode_values]))
 
 def link_prediction(data):
+    print(data.keys())
     # Split edges into positive and negative
-    edge_index = data.adj_t
+    edge_index = data.edge_index
     num_nodes = data.num_nodes
 
     # Positive sample
