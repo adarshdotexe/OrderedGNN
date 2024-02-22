@@ -110,7 +110,7 @@ def get_trainer(params):
             if m.bias is not None:
                 torch.nn.init.zeros_(m.bias.data)
     
-    # model.apply(weights_init)
+    model.apply(weights_init)
 
     criterion = torch.nn.NLLLoss()
     

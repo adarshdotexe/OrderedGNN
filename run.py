@@ -86,18 +86,18 @@ def runner(wandb_config, params_default):
         time_all = []
 
         # Pretraining
-        pos_edge_index , neg_edge_index = link_prediction(trainer['data'])
+        # pos_edge_index , neg_edge_index = link_prediction(trainer['data'])
 
-        for epoch in range(401):
-            start_time = time.time()
-            metrics = train_link_prediction(trainer=trainer, pos_edge_index=pos_edge_index, neg_edge_index=neg_edge_index)
-            end_time = time.time()
-            time_consumed = end_time-start_time
-            time_all.append(time_consumed)
-            if epoch%params['log_freq']==0:
-                writer.add_scalar('time/pretrain', time_consumed, epoch)
-                writer.add_scalar('metric/pretrain', metrics['metric'], epoch)
-                writer.add_scalar('loss/pretrain', metrics['loss'], epoch)
+        # for epoch in range(401):
+        #     start_time = time.time()
+        #     metrics = train_link_prediction(trainer=trainer, pos_edge_index=pos_edge_index, neg_edge_index=neg_edge_index)
+        #     end_time = time.time()
+        #     time_consumed = end_time-start_time
+        #     time_all.append(time_consumed)
+        #     if epoch%params['log_freq']==0:
+        #         writer.add_scalar('time/pretrain', time_consumed, epoch)
+        #         writer.add_scalar('metric/pretrain', metrics['metric'], epoch)
+        #         writer.add_scalar('loss/pretrain', metrics['loss'], epoch)
 
         for epoch in range(params['epochs']):
             
