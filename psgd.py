@@ -32,25 +32,23 @@ class KFAC(Optimizer):
         self._iteration_counter = 0
         
         for mod in net.modules():
-            mod_name = mod.__class__.__name__
-            if mod_name in ['CRD', 'CLS']:
-                handle = mod.register_forward_pre_hook(self._save_input)
-                self._fwd_handles.append(handle)
-                
-                for sub_mod in mod.modules():
-                    i_sub_mod = 0
-                    if hasattr(sub_mod, 'weight'):
-                        assert i_sub_mod == 0
-                        handle = sub_mod.register_backward_hook(self._save_grad_output)
-                        self._bwd_handles.append(handle)
-                        
-                        params = [sub_mod.weight]
-                        if sub_mod.bias is not None:
-                            params.append(sub_mod.bias)
+            handle = mod.register_forward_pre_hook(self._save_input)
+            self._fwd_handles.append(handle)
+            
+            for sub_mod in mod.modules():
+                i_sub_mod = 0
+                if hasattr(sub_mod, 'weight'):
+                    assert i_sub_mod == 0
+                    handle = sub_mod.register_backward_hook(self._save_grad_output)
+                    self._bwd_handles.append(handle)
+                    
+                    params = [sub_mod.weight]
+                    if sub_mod.bias is not None:
+                        params.append(sub_mod.bias)
 
-                        d = {'params': params, 'mod': mod, 'sub_mod': sub_mod}
-                        self.params.append(d)
-                        i_sub_mod += 1
+                    d = {'params': params, 'mod': mod, 'sub_mod': sub_mod}
+                    self.params.append(d)
+                    i_sub_mod += 1
 
         super(KFAC, self).__init__(self.params, {})
 

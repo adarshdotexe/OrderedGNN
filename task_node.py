@@ -106,7 +106,7 @@ def get_trainer(params):
     criterion = torch.nn.NLLLoss()
 
     preconditioner = psgd.KFAC(
-                model.parameters(), 
+                model, 
                 eps=0.01, 
                 sua=False, 
                 pi=False, 
