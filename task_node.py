@@ -79,7 +79,7 @@ def get_trainer(params):
         dataset = load_nc_dataset(dataset_name, sub_dataname='')
         edge_index = dataset[0][0]['edge_index']
         num_nodes = dataset[0][0]['num_nodes']
-        data = Data(x=dataset[0][0]['node_feat'], adj_t=SparseTensor(row=edge_index[0], col=edge_index[1], sparse_sizes=(num_nodes, num_nodes)), y=dataset[0][1].view(-1), num_nodes=dataset[0][0]['num_nodes'], edge_index=edge_index, num_nodes=num_nodes)
+        data = Data(x=dataset[0][0]['node_feat'], adj_t=SparseTensor(row=edge_index[0], col=edge_index[1], sparse_sizes=(num_nodes, num_nodes)), y=dataset[0][1].view(-1), num_nodes=dataset[0][0]['num_nodes'], edge_index=edge_index)
         splits = np.load('datasets/datasets_linkx/data/arxiv-year-splits.npy', allow_pickle=True)
         sizes = (data.num_nodes, len(splits))
         data.train_mask = torch.zeros(sizes, dtype=torch.bool)
