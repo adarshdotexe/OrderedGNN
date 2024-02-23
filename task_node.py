@@ -18,7 +18,7 @@ def get_trainer(params):
     split = params['index_split']
 
     if dataset_name in ['Chameleon', 'Squirrel']:
-        dataset = WikipediaNetwork(root='datasets/datasets_pyg/', geom_gcn_preprocess=True, name=dataset_name, transform=T.Compose([T.AddSelfLoops(), T.NormalizeFeatures(), T.ToSparseTensor()]))
+        dataset = WikipediaNetwork(root='datasets/datasets_pyg/', geom_gcn_preprocess=True, name=dataset_name, transform=T.Compose([T.NormalizeFeatures(), T.ToSparseTensor()]))
         data = dataset[0]
         data.train_mask = dataset[0].train_mask[:,int(split)]
         data.val_mask = dataset[0].val_mask[:,int(split)]
@@ -30,7 +30,7 @@ def get_trainer(params):
         params['out_channel']=dataset.num_classes
 
     if dataset_name in ['Cornell', 'Texas', 'Wisconsin']:
-        dataset = WebKB(root='datasets/datasets_pyg/', name=dataset_name, transform=T.Compose([T.AddSelfLoops(), T.NormalizeFeatures(), T.ToSparseTensor()]))
+        dataset = WebKB(root='datasets/datasets_pyg/', name=dataset_name, transform=T.Compose([T.NormalizeFeatures(), T.ToSparseTensor()]))
         data = dataset[0]
         data.train_mask = dataset[0].train_mask[:,int(split)]
         data.val_mask = dataset[0].val_mask[:,int(split)]
@@ -39,7 +39,7 @@ def get_trainer(params):
         params['out_channel']=dataset.num_classes
     
     if dataset_name in ['Actor']:
-        dataset = Actor(root='datasets/datasets_pyg/Actor', transform=T.Compose([T.AddSelfLoops(), T.NormalizeFeatures(), T.ToSparseTensor()]))
+        dataset = Actor(root='datasets/datasets_pyg/Actor', transform=T.Compose([T.NormalizeFeatures(), T.ToSparseTensor()]))
         data = dataset[0]
         data.train_mask = dataset[0].train_mask[:,int(split)]
         data.val_mask = dataset[0].val_mask[:,int(split)]
@@ -48,13 +48,13 @@ def get_trainer(params):
         params['out_channel']=dataset.num_classes
     
     if dataset_name in ['Cora_full','CiteSeer_full','PubMed_full']:
-        dataset = Planetoid(root='datasets/datasets_pyg/', name='%s'%(dataset_name.split('_')[0]), split=dataset_name.split('_')[-1], transform=T.Compose([T.AddSelfLoops(), T.NormalizeFeatures(), T.ToSparseTensor()]))
+        dataset = Planetoid(root='datasets/datasets_pyg/', name='%s'%(dataset_name.split('_')[0]), split=dataset_name.split('_')[-1], transform=T.Compose([T.NormalizeFeatures(), T.ToSparseTensor()]))
         data = dataset[0]
         params['in_channel']=data.num_features
         params['out_channel']=dataset.num_classes
 
     if dataset_name in ['Cora_geom','CiteSeer_geom','PubMed_geom']:
-        dataset = Planetoid(root='datasets/datasets_pyg/', name='%s'%(dataset_name.split('_')[0]), split='public', transform=T.Compose([T.AddSelfLoops(), T.NormalizeFeatures(), T.ToSparseTensor()]))
+        dataset = Planetoid(root='datasets/datasets_pyg/', name='%s'%(dataset_name.split('_')[0]), split='public', transform=T.Compose([T.NormalizeFeatures(), T.ToSparseTensor()]))
         split_str = "%s_split_0.6_0.2_%s.npz"%(dataset_name.split('_')[0].lower(), str(split))
         split_file = np.load(os.path.join('datasets/datasets_geomgcn/', split_str))
         data = dataset[0]
