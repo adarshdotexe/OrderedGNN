@@ -23,7 +23,6 @@ def get_trainer(params):
         data.train_mask = dataset[0].train_mask[:,int(split)]
         data.val_mask = dataset[0].val_mask[:,int(split)]
         data.test_mask = dataset[0].test_mask[:,int(split)]
-        data.edge_index = dataset[0].edge_index[:,int(split)]
         data.x = torch.eye(data.x.shape[0])
         data.adj_t = data.adj_t.t()
         params['in_channel']=data.x.shape[0]
