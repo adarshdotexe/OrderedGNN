@@ -1,5 +1,6 @@
 import torch
 import math
+from torch.data.aggr import SoftmaxAggregation
 import torch.nn.functional as F
 from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import remove_self_loops, add_self_loops
@@ -7,7 +8,7 @@ from torch_sparse import SparseTensor, fill_diag
 
 class ONGNNConv(MessagePassing):
     def __init__(self, params):
-        super(ONGNNConv, self).__init__(aggr='mean')
+        super(ONGNNConv, self).__init__(aggr=SoftmaxAggregation(learn=True))
         self.params = params
         self.tm_net = torch.nn.Linear(2*params['hidden_channel'], params['chunk_size'])
         self.tm_norm = torch.nn.LayerNorm(params['hidden_channel'])
@@ -60,5 +61,5 @@ class ONGNNConv(MessagePassing):
         attention = F.leaky_relu(-attention, negative_slope=0.2)
         attention = F.dropout(attention, p=0.2, training=self.training)
         out = attention.view(-1, 1) * value
-        return out
+        return x_j
     
