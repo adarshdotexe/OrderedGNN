@@ -150,7 +150,6 @@ def get_metric(trainer, stage, lam=0.):
         vec = encode_values['x']
         pred = F.log_softmax(vec, dim=-1)
         loss = criterion(pred[mask], data.y.squeeze(1)[mask])
-        loss += lam * criterion(pred[~mask], data.y.squeeze(1)[~mask])
 
     else:
         for _, mask_tensor in data(stage+'_mask'):
@@ -159,7 +158,6 @@ def get_metric(trainer, stage, lam=0.):
         vec = encode_values['x']
         pred = F.log_softmax(vec, dim=-1)
         loss = criterion(pred[mask], data.y[mask])
-        loss += lam * criterion(pred[~mask], data.y.squeeze(1)[~mask])
 
     if stage=='train':
         loss.backward(retain_graph=True)

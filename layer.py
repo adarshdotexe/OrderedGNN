@@ -52,7 +52,7 @@ class ONGNNConv(MessagePassing):
         query = self.query(torch.cat((x_i, m_i), dim=1))
         query = F.softmax(query, dim=-1)
 
-        key = self.key(torch.cat((x_j, x_i), dim=1))
+        key = self.key(torch.cat((x_j, m_i), dim=1))
         key = F.softmax(key, dim=-1)
 
         value = self.value(torch.cat((x_j, m_i), dim=1))
